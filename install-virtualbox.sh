@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 DISK='/dev/sda'
-FQDN='vagrant-arch.vagrantup.com'
+FQDN='arch'
 KEYMAP='us'
 LANGUAGE='en_US.UTF-8'
 PASSWORD=$(/usr/bin/openssl passwd -crypt 'vagrant')
-TIMEZONE='UTC'
+TIMEZONE='Asia/Shanghai'
 
 CONFIG_SCRIPT='/usr/local/bin/arch-config.sh'
 ROOT_PARTITION="${DISK}1"
@@ -29,6 +29,16 @@ echo '==> creating /root filesystem (ext4)'
 
 echo "==> mounting ${ROOT_PARTITION} to ${TARGET_DIR}"
 /usr/bin/mount -o noatime,errors=remount-ro ${ROOT_PARTITION} ${TARGET_DIR}
+
+echo '==> selecting mirrors'
+# cp -vf /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
+sed -i.bak '0,/^$/s@@\
+# A fast unofficial mirror\
+Server = http://mirrors.aliyun.com/archlinux/$repo/os/$arch\
+@' /etc/pacman.d/mirrorlist
+# /usr/bin/pacman -S --noconfirm reflector
+# /usr/bin/reflector --country China -l 8 -p http --sort rate --save /etc/pacman.d/mirrorlist
+# pacman -Syy # duplicate
 
 echo '==> bootstrapping the base installation'
 /usr/bin/pacstrap ${TARGET_DIR} base base-devel
